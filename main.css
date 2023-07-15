@@ -1,0 +1,38 @@
+a,
+strong {
+    color: #0080ff;
+}
+
+
+a:hover {
+    background-color: #ddeeff;
+}
+
+
+path {
+    stroke: darkcyan;
+    stroke-width: 3;
+    fill: none;
+}
+
+
+svg {
+    display: block;
+    margin: 0 auto;
+}
+
+body {
+    font: 10px Arial;
+}
+
+h1 {
+    text-align: center;
+    color: rgb(255, 0, 0);
+    font-family: Andale Mono;
+}
+
+p {
+    text-align: center;
+    font-family: Andale Mono;
+    font-size: 15px;
+}

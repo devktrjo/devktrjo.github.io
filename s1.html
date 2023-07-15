@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="main.css">
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
+
+    <title>NBA Data Visualization</title>
+
+    <style>
+        body {
+            font-family: Helvetica;
+            color: rgb(11, 1, 1);
+        }
+
+        #tooltip {
+            position: fixed;
+            text-align: center;
+            visibility: hidden;
+            border: solid;
+            width: 60px;
+            height: 30px;
+            background: white;
+        }
+
+        .chart rect {}
+    </style>
+</head>
+
+<body onload="setup()">
+
+    <p>
+        Points vs Minutes
+        --
+        <a href="s2.html">Rebounds vs Minutes</a>
+        --
+        <a href="s3.html">Assists vs Minutes</a>
+    </p>
+    <br>
+    <h1>NBA 2022-2023 Regular Season has completed and Milwaukee Bucks has the number of wins throughout the season.
+        Their star player Giannis Antetokounmpo made more than 30 points per game on average and become the main player
+        of the team averaging close to 35 minutes game time for each match </h1>
+    <p>
+        <b>Select Team:</b>
+        <select id="teamSelect">
+            <option value="MIL">MIL</option>
+        </select>
+    </p>
+    <svg id="tpm" class="chart" width=600 height=600>
+    </svg>
+    <div id="tooltip"></div>
+
+    <script>
+        async function setup() {
+            // API CALL + SETUP
+            const data = await d3.csv("https://devktrjo.github.io/regularseason.csv");
+
+            var margin = { top: 50, right: 50, bottom: 50, left: 50 },
+                width = 600 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
+
+            var tooltip = d3.select('#tooltip');
+
+
+            var allGroup = d3.map(data, function (d) { return (d.Tm) }).keys()
+            allGroup.splice(allGroup.indexOf("MIL"), 1)
+
+
+
+            // TEMP
+            var possibleTeams = allGroup;
+            var chosenTeam = '';
+
+            xScale = d3.scaleLinear().domain([0, 50]).range([0, 500]);
+            yScale = d3.scaleLinear().domain([0, 50]).range([500, 0]);
+            cs = d3.scaleOrdinal().domain(possibleTeams).range(d3.schemePaired);
+
+            d3.select('svg')
+                .append('g')
+                .attr("transform", "translate(50,50)")
+                .call(d3.axisLeft(yScale));
+
+            d3.select('svg')
+                .append('g')
+                .attr("transform", "translate(50,550)")
+                .call(d3.axisBottom(xScale));
+
+
+
+
+            d3.select("svg")
+                .append('g')
+                .attr("transform", "translate(50,50)")
+                .append("text")
+                .attr("x", (width / 2))
+                .attr("y", 0 - (margin.top / 2))
+                .attr("text-anchor", "middle")
+                .style("font-size", "15px")
+                .style("font-family", "Andale Mono, monospace")
+                .text("Data shows the average points vs number of minutes played")
+                ;
+
+            d3.select('svg')
+                .append('g')
+                .attr("transform", "translate(50,50)")
+                .selectAll("circle").data(data).enter().append("circle")
+                .attr("cx", function (d, i) { return xScale(d.MP); })
+                .attr("cy", function (d, i) { return yScale(d.PTS); })
+                .attr("r", 7)
+                .attr("fill", function (d) { return cs(d.Tm); })
+                .on("mouseover", function (d, i) {
+                    var visibility = chosenTeam == d.Tm || chosenTeam == '' ? 'visible' : 'hidden';
+                    tooltip.transition().duration(100);
+                    tooltip.style("visibility", visibility)
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY) + "px")
+                        .style("opacity", 1)
+                        .text(d.Player);
+                })
+                .on("mouseout", function () {
+                    tooltip.transition().duration(100);
+                    tooltip.style("visibility", "hidden");
+                });
+
+
+            d3.select("#teamSelect")
+                .selectAll('myOptions')
+                .data(allGroup)
+                .enter()
+                .append('option')
+                .text(function (d) { return d; })
+                .attr("value", function (d) { return d; });
+
+            function refreshSelectedTeam(chosenTeam) {
+                d3.select("svg")
+                    .selectAll("circle")
+                    .data(data)
+                    .transition()
+                    .duration(1000)
+                    .attr("cx", function (d) { return xScale(d.MP) })
+                    .attr("cy", function (d) { return yScale(d.PTS) })
+                    .attr("opacity", function (d) {
+                        return (d.Tm == chosenTeam || chosenTeam == '') ? 1 : 0;
+                    })
+
+                const h1Element = document.querySelector('h1');
+                if (chosenTeam != "MIL") {
+
+                    h1Element.style.display = 'none';
+                }
+                else {
+                    h1Element.style.display = 'block';
+                }
+
+
+            };
+            d3.select("#teamSelect").on("change", function (d) {
+                var selectedOption = d3.select(this).property("value")
+                refreshSelectedTeam(selectedOption)
+            });
+
+            refreshSelectedTeam("MIL")
+        };
+    </script>
+</body>
+
+</html>
